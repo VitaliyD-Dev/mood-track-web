@@ -16,7 +16,7 @@ class EmotionAnalyzerController extends Controller
 
     public function index()
     {
-        return view('emotion-analyzer');
+        return view('emotion.index');
     }
 
     public function analyze(Request $request)
@@ -27,6 +27,6 @@ class EmotionAnalyzerController extends Controller
 
         $result = $this->analyzerService->analyze($request->input('text'));
 
-        return view('emotion-analyzer', ['result' => $result]);
+        return view('emotion.index', ['result' => $result]);
     }
 }
