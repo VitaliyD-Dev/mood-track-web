@@ -5,7 +5,7 @@ use App\Http\Controllers\EmotionAnalyzerController;
 
 // Головний маршрут перенаправляє на emotion-analyzer
 Route::get('/', function () {
-    return redirect('/emotion-analyzer');
+    return view('welcome');
 });
 
 // Маршрути для аналізатора емоцій
@@ -16,3 +16,15 @@ Route::post('/emotion-analyzer', [EmotionAnalyzerController::class, 'analyze'])-
 Route::get('/welcome', function () {
     return view('welcome');
 });
+
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+});
+
+Route::get('/emotional-analyzer', [EmotionAnalyzerController::class, 'index'])->name('emotional-analyzer');
