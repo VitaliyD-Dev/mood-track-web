@@ -15,6 +15,7 @@
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+<<<<<<< HEAD
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
@@ -23,6 +24,13 @@
                     </x-nav-link>
                 </div>
 
+=======
+
+                    <x-nav-link href="{{ route('emotion-analyzer') }}" :active="request()->routeIs('emotion-analyzer')">
+                        {{ __('Emotion Analyzer') }}
+                    </x-nav-link>
+                </div>
+>>>>>>> 6a118078e090f9c2108a2fdc1bf96036064bb943
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">

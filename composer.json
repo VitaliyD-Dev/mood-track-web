@@ -11,7 +11,11 @@
         "laravel/jetstream": "^5.3",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+<<<<<<< HEAD
         "livewire/livewire": "^3.0"
+=======
+        "livewire/livewire": "^3.5"
+>>>>>>> 6a118078e090f9c2108a2fdc1bf96036064bb943
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
