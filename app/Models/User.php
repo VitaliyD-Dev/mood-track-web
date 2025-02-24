@@ -9,6 +9,10 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use Carbon\Carbon;
+
+
+
 
 class User extends Authenticatable
 {
@@ -61,7 +65,14 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_seen' => 'datetime',
             'password' => 'hashed',
         ];
     }
+    public function isOnline()
+    {
+        return $this->last_seen && $this->last_seen->gt(Carbon::now()->subMinutes(5)); // Якщо остання активність була менше 5 хвилин тому
+    }
+
+
 }

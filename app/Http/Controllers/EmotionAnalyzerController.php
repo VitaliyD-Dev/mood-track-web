@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Services\EmotionAnalyzerService;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class EmotionAnalyzerController extends Controller
 {
@@ -29,4 +32,20 @@ class EmotionAnalyzerController extends Controller
 
         return view('emotion.index', ['result' => $result]);
     }
+
+    public function userIndex()
+    {
+        // Перевірка, чи користувач авторизований
+        $user = Auth::user();
+
+        if ($user) {
+            // Оновлення часу останнього відвідування
+            $user->last_seen = Carbon::now();
+            $user->save(); // Зберігаємо зміни в базі даних
+        }
+
+        $users = User::all();
+        return view('users.index', compact('users'));
+    }
+
 }

@@ -31,3 +31,5 @@ Route::middleware([
 });
 
 Route::get('/emotional-analyzer', [EmotionAnalyzerController::class, 'index'])->name('emotional-analyzer');
+Route::get('/users', [EmotionAnalyzerController::class, 'userIndex'])->middleware(['auth:sanctum', 'verified'])->name('users.index');
+
