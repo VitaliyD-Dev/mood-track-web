@@ -10,7 +10,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Storage;
 
 
 
@@ -33,6 +33,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'profile_photo_path',
     ];
 
     /**
@@ -74,5 +75,18 @@ class User extends Authenticatable
         return $this->last_seen && $this->last_seen->gt(Carbon::now()->subMinutes(5)); // Якщо остання активність була менше 5 хвилин тому
     }
 
+    public function updateProfilePhoto($photo)
+    {
+        $path = $photo->store('profile-photos', 'public');
+        $this->forceFill([
+            'profile_photo_path' => $path,
+        ])->save();
+    }
 
+    public function getProfilePhotoUrlAttribute()
+    {
+        return $this->profile_photo_path
+            ? Storage::url($this->profile_photo_path)
+            : asset('default-avatar.jpg');
+    }
 }

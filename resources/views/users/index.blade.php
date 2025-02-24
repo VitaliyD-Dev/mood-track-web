@@ -13,6 +13,8 @@
                     @foreach ($users as $user)
                         <li class="flex justify-between items-center border-b pb-2">
                             <span class="font-medium text-gray-700">{{ $user->name }}</span>
+                            <img src="{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : asset('default-avatar.jpg') }}"
+                                class="rounded-full size-20 object-cover">
                             @if ($user->isOnline())
                                 <span class="text-green-500">● Онлайн</span>
                             @else
