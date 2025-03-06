@@ -28,6 +28,12 @@
                         {{ __('Users List') }}
                     </x-nav-link>
                 </div>
+
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link href="{{ route('video-comments.form') }}" :active="request()->routeIs('video-comments.form')">
+                        {{ __('Парсинг YouTube') }}
+                    </x-nav-link>
+                </div>
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">

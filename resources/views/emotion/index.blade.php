@@ -10,17 +10,26 @@
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 <form method="POST" action="{{ route('analyze') }}">
                     @csrf
-                    <div class="mb-4">
-                        <textarea name="text" rows="5" class="w-full border-gray-300 rounded-md shadow-sm"
-                            placeholder="Введіть текст для аналізу...">{{ old('text') }}</textarea>
-                    </div>
-                    <div class="flex justify-center">
-                        <x-button type="submit" class="ml-4">
-                            Аналізувати
-                        </x-button>
+                    <div>
+                        <x-label for="text" value="Введіть текст для аналізу" />
+                        <textarea id="text" name="text" class="w-full p-2 border rounded-md" required></textarea>
+
+
+
                     </div>
 
+                    <div class="flex justify-between mt-6">
+                        <x-button type="submit">
+                            Аналізувати
+                        </x-button>
+                        <a href="{{ route('emotion.history') }}" class="px-4 py-2 bg-blue-500 text-black rounded-md">
+                            Переглянути історію
+                        </a>
+                    </div>
+
+
                 </form>
+
 
                 @if(isset($result))
                     <div class="mt-6 p-4 bg-gray-50 rounded-md">
@@ -28,6 +37,14 @@
                     </div>
                 @endif
             </div>
+
         </div>
     </div>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', function () {
+            document.querySelector('button[type="submit"]').disabled = true;
+        });
+    </script>
+
 </x-app-layout>

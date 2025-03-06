@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\EmotionAnalysis;
+
 class EmotionAnalyzerService
 {
     protected $pythonPath;
@@ -11,7 +13,7 @@ class EmotionAnalyzerService
         $this->pythonPath = $this->detectPython();
     }
 
-    public function analyze($text)
+    public function analyze($text, $userId)
     {
         $scriptPath = base_path('app/Services/python.py');
 
@@ -26,8 +28,20 @@ class EmotionAnalyzerService
         $command = escapeshellcmd("{$this->pythonPath} {$scriptPath} " . escapeshellarg($text));
         $output = shell_exec($command);
 
-        return $output ?: "Error: Failed to execute script.";
+        if (!$output) {
+            return "Error: Failed to execute script.";
+        }
+
+        // Зберігаємо результат у БД з user_id
+        $analysis = EmotionAnalysis::create([
+            'user_id' => $userId, // Додаємо user_id
+            'input_text' => $text,
+            'result' => $output
+        ]);
+
+        return $output;
     }
+
 
     private function detectPython()
     {

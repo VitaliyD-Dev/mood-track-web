@@ -89,4 +89,9 @@ class User extends Authenticatable
             ? Storage::url($this->profile_photo_path)
             : asset('default-avatar.jpg');
     }
+
+    public function emotionAnalyses()
+    {
+        return $this->hasMany(EmotionAnalysis::class);
+    }
 }

@@ -20,6 +20,6 @@ class Kernel extends HttpKernel
     ];
 
     protected $routeMiddleware = [
-        // Міддлвейри для маршрутів
+        'auth.middleware' => \App\Http\Middleware\AuthMiddleware::class,
     ];
 }
