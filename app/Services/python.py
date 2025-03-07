@@ -63,71 +63,73 @@ def analyze_sentence(sentence, classifier):
         return None
 
 def analyze_text(text):
-    """Analyze the emotional content of text by sentences"""
     try:
         classifier = get_emotion_analyzer()
         sentences = split_into_sentences(text)
-        
-        # Analyze each sentence
+
         analyses = []
         for sentence in sentences:
-            if len(sentence) > 3:  # Skip very short sentences
+            if len(sentence) > 3:
                 analysis = analyze_sentence(sentence, classifier)
                 if analysis:
                     analyses.append(analysis)
-        
-        # Format the output
+
         output = []
-        output.append("=" * 80)
-        output.append("EMOTIONAL ANALYSIS BY SENTENCE")
-        output.append("=" * 80)
-        
+        output.append("<div class='emotion-analysis'>")
+        output.append("<h2>Emotional Analysis by Sentence</h2>")
+
         for i, analysis in enumerate(analyses, 1):
-            output.append(f"\nSENTENCE {i}:")
-            output.append(f"   {analysis['text']}")
-            output.append(f"\n   Primary Emotion: {analysis['dominant_emotion'].upper()} ({analysis['confidence']:.1%})")
+            output.append(f"<div class='sentence-block'>")
+            output.append(f"<h3>Sentence {i}:</h3>")
+            output.append(f"<p>{analysis['text']}</p>")
+            output.append(f"<p><strong>Primary Emotion:</strong> {analysis['dominant_emotion'].upper()} ({analysis['confidence']:.1%})</p>")
             
-            # Add emotion breakdown
-            output.append("\n   Emotional Breakdown:")
-            sorted_emotions = sorted(analysis['emotions'].items(), key=lambda x: x[1], reverse=True)
-            for emotion, score in sorted_emotions:
-                bar = "#" * int(score * 40)
-                output.append(f"   {emotion.ljust(10)} {bar} {score:.1%}")
-            
-            output.append("-" * 80)
-        
-        # Add overall analysis
+            # Емоційний розподіл
+            output.append("<div class='emotion-breakdown'>")
+            output.append("<h4>Emotional Breakdown:</h4>")
+            for emotion, score in sorted(analysis['emotions'].items(), key=lambda x: x[1], reverse=True):
+                output.append(f"""
+                    <div class='emotion-bar'>
+                        <span>{emotion.capitalize()} ({score:.1%})</span>
+                        <div class='bar' style='width: {score * 100}%;'></div>
+                    </div>
+                """)
+            output.append("</div>")  # Закриваємо emotional-breakdown
+            output.append("</div>")  # Закриваємо sentence-block
+
+        # Підсумковий аналіз
         if analyses:
-            output.append("\nOVERALL SENTIMENT ANALYSIS:")
-            # Calculate average emotions across all sentences
+            output.append("<div class='overall-analysis'>")
+            output.append("<h3>Overall Sentiment Analysis</h3>")
             all_emotions = {}
             for analysis in analyses:
                 for emotion, score in analysis['emotions'].items():
                     all_emotions[emotion] = all_emotions.get(emotion, 0) + score
-            
-            # Get averages
             for emotion in all_emotions:
                 all_emotions[emotion] /= len(analyses)
-            
-            # Get dominant overall emotion
+
             dominant_overall = max(all_emotions.items(), key=lambda x: x[1])
-            output.append(f"\nDominant Emotion: {dominant_overall[0].upper()} ({dominant_overall[1]:.1%})")
-            
-            output.append("\nOverall Emotional Breakdown:")
-            sorted_overall = sorted(all_emotions.items(), key=lambda x: x[1], reverse=True)
-            for emotion, score in sorted_overall:
-                bar = "#" * int(score * 40)
-                output.append(f"{emotion.ljust(10)} {bar} {score:.1%}")
-        
-        output.append("=" * 80)
-        
-        # Encode the output as UTF-8
-        result = "\n".join(output)
-        return result.encode('utf-8').decode('utf-8')
-        
+            output.append(f"<p><strong>Dominant Emotion:</strong> {dominant_overall[0].upper()} ({dominant_overall[1]:.1%})</p>")
+            output.append("<div class='emotion-breakdown'>")
+            output.append("<h4>Overall Emotional Breakdown:</h4>")
+            for emotion, score in sorted(all_emotions.items(), key=lambda x: x[1], reverse=True):
+                output.append(f"""
+                    <div class='emotion-bar'>
+                        <span>{emotion.capitalize()} ({score:.1%})</span>
+                        <div class='bar' style='width: {score * 100}%;'></div>
+                    </div>
+                """)
+            output.append("</div>")  # Закриваємо emotional-breakdown
+            output.append("</div>")  # Закриваємо overall-analysis
+
+        output.append("</div>")  # Закриваємо emotion-analysis
+
+        return "\n".join(output)
+    
     except Exception as e:
         logger.error(f"Analysis failed: {str(e)}")
-        return f"Error analyzing text: {str(e)}"
+        return f"<p>Error analyzing text: {str(e)}</p>"
+
 
 if __name__ == "__main__":
     try:

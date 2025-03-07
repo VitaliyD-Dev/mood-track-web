@@ -5,3 +5,71 @@
 [x-cloak] {
     display: none;
 }
+.emotion-analysis {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+.sentence-block {
+    margin-bottom: 20px;
+    padding: 10px;
+    background: white;
+    border-left: 4px solid #007BFF;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.emotion-breakdown {
+    margin-top: 10px;
+}
+.emotion-bar {
+    position: relative;
+    margin-bottom: 8px;
+    background: #eee;
+    height: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.emotion-bar span {
+    position: absolute;
+    left: 10px;
+    top: 2px;
+    font-size: 14px;
+    font-weight: bold;
+}
+.bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4b4b, #ff9500);
+}
+
+/* Стилі для прогрес-бару */
+.progress-container {
+    width: 100%;
+    background-color: #f3f4f6;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    height: 1.5rem;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4f46e5, #818cf8);
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 0.875rem;
+}

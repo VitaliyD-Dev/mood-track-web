@@ -47,5 +47,5 @@ Route::middleware([
     Route::get('/video-comments', [VideoCommentController::class, 'showForm'])->name('video-comments.form');
     Route::post('/video-comments', [VideoCommentController::class, 'fetchComments'])->name('video-comments.fetch');
 
-
+    Route::get('/emotion/{analysis}', [App\Http\Controllers\EmotionAnalysisController::class, 'show'])->name('emotion.show');
 });

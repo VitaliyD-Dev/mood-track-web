@@ -17,7 +17,11 @@ class EmotionAnalysisController extends Controller
         // Middleware тут більше не буде
         $this->emotionAnalyzer = $emotionAnalyzer;
     }
-
+    public function show($id)
+    {
+        $analysis = EmotionAnalysis::findOrFail($id);
+        return view('emotion.show', compact('analysis'));
+    }
     public function analyze(Request $request)
 {
     $request->validate([
