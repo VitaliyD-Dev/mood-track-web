@@ -73,3 +73,44 @@
     font-weight: 600;
     font-size: 0.875rem;
 }
+
+
+/* Стилізація для основної емоції */
+.primary-emotion {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #0073e6;
+    margin-bottom: 10px;
+}
+
+.emotional-breakdown {
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin-top: 20px;
+    color: #333;
+}
+
+.emotion-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1rem;
+    background-color: #f0f4f8;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.emotion-item span {
+    display: inline-block;
+    font-size: 0.875rem;
+    color: #555;
+}
+
+.emotion-item div {
+    display: inline-block;
+    height: 6px;
+    border-radius: 4px;
+    background-color: #4CAF50;
+    width: 0%; /* Визначатиметься за допомогою JS або серверного коду */
+}

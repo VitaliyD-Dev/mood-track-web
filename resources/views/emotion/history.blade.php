@@ -40,72 +40,34 @@
                                     <td class="py-3 px-6 whitespace-pre-wrap overflow-hidden">
                                         <div class="max-h-40 overflow-y-auto">
                                             @php
-                                                $result = $analysis->result;
-                                                
-                                                
-                                                // Шукаємо Primary Emotion
-                                                if (preg_match('/Primary Emotion: ([A-Z]+) \(([0-9.]+)%?\)/', $result, $matches)) {
-                                                    echo "<p><strong>Primary Emotion:</strong> {$matches[1]} ({$matches[2]}%)</p>";
-                                                }
+                                                // Виводимо основну емоцію
+                                                echo "<p><strong>Primary Emotion:</strong> " . strtoupper($analysis->dominant_emotion) . " (" . round($analysis->confidence * 100, 1) . "%)</p>";
                                                 
                                                 // Виводимо заголовок для емоційного аналізу
                                                 echo "<h4 class='font-bold mt-2'>Overall Emotional Breakdown:</h4>";
                                                 
-                                                // Шукаємо всі емоції та відсотки
-                                                preg_match_all('/([A-Za-z]+) \(([0-9.]+)%?\)/', $result, $matches, PREG_SET_ORDER);
+                                                // Отримуємо загальний розподіл емоцій
+                                                $overallEmotions = $analysis->overall_emotions;
                                                 
-                                                // Масив для зберігання унікальних емоцій
-                                                $processedEmotions = [];
+                                                // Визначаємо кольори для емоцій
+                                                $emotionColors = [
+                                                    'neutral' => '#9ca3af',
+                                                    'joy' => '#f59e0b',
+                                                    'sadness' => '#3b82f6',
+                                                    'anger' => '#ef4444',
+                                                    'fear' => '#8b5cf6',
+                                                    'disgust' => '#10b981',
+                                                    'surprise' => '#ec4899'
+                                                ];
                                                 
-                                                // Обробляємо знайдені емоції
-                                                foreach ($matches as $match) {
-                                                    $emotion = $match[1];
-                                                    // Пропускаємо емоції у верхньому регістрі (це зазвичай заголовки)
-                                                    if ($emotion === strtoupper($emotion)) {
-                                                        continue;
-                                                    }
+                                                // Виводимо полоски для кожної емоції
+                                                foreach ($overallEmotions as $emotion => $percentage) {
+                                                    $color = $emotionColors[strtolower($emotion)] ?? '#9ca3af';
+                                                    $percentageDisplay = round($percentage * 100, 1);
                                                     
-                                                    $percentage = floatval($match[2]);
-                                                    
-                                                    // Пропускаємо дублікати (емоції можуть повторюватися в різних частинах аналізу)
-                                                    if (in_array(strtolower($emotion), $processedEmotions)) {
-                                                        continue;
-                                                    }
-                                                    
-                                                    $processedEmotions[] = strtolower($emotion);
-                                                    
-                                                    // Визначаємо колір для емоції
-                                                    $color = '';
-                                                    switch(strtolower($emotion)) {
-                                                        case 'neutral':
-                                                            $color = '#9ca3af';
-                                                            break;
-                                                        case 'joy':
-                                                            $color = '#f59e0b';
-                                                            break;
-                                                        case 'sadness':
-                                                            $color = '#3b82f6';
-                                                            break;
-                                                        case 'anger':
-                                                            $color = '#ef4444';
-                                                            break;
-                                                        case 'fear':
-                                                            $color = '#8b5cf6';
-                                                            break;
-                                                        case 'disgust':
-                                                            $color = '#10b981';
-                                                            break;
-                                                        case 'surprise':
-                                                            $color = '#ec4899';
-                                                            break;
-                                                        default:
-                                                            $color = '#9ca3af';
-                                                    }
-                                                    
-                                                    // Створюємо HTML для полоски
                                                     echo '<div style="position: relative; margin-bottom: 8px; background: #eee; height: 20px; border-radius: 4px; overflow: hidden;">';
-                                                    echo '<span style="position: absolute; left: 10px; top: 2px; font-size: 14px; font-weight: bold; z-index: 10;">' . $emotion . ' (' . $percentage . '%)</span>';
-                                                    echo '<div style="height: 100%; width: ' . $percentage . '%; background: ' . $color . ';"></div>';
+                                                    echo '<span style="position: absolute; left: 10px; top: 2px; font-size: 14px; font-weight: bold; z-index: 10;">' . ucfirst($emotion) . ' (' . $percentageDisplay . '%)</span>';
+                                                    echo '<div style="height: 100%; width: ' . $percentageDisplay . '%; background: ' . $color . ';"></div>';
                                                     echo '</div>';
                                                 }
                                             @endphp

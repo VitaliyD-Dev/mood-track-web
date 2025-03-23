@@ -1,17 +1,10 @@
 import logging
 import sys
-import os
-from transformers import pipeline
-import torch
+import json
 import re
+from transformers import pipeline
 
-# Set UTF-8 encoding for output
-import locale
-import codecs
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer)
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-
-# Configure logging
+# Налаштування логування
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -20,20 +13,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Suppress unnecessary warnings
-import warnings
-warnings.filterwarnings('ignore')
 
 def split_into_sentences(text):
-    """Split text into sentences"""
-    # Split by common sentence endings (., !, ?)
-    # but keep the delimiter with the sentence
-    sentences = re.split('(?<=[.!?])\s+', text)
-    # Filter out empty sentences and strip whitespace
+    """Розбиває текст на речення"""
+    sentences = re.split(r'(?<=[.!?])\s+', text)
     return [s.strip() for s in sentences if s.strip()]
 
+
 def get_emotion_analyzer():
-    """Initialize the emotion analyzer with minimal dependencies"""
+    """Ініціалізуємо аналізатор емоцій"""
     try:
         classifier = pipeline(
             task="text-classification",
@@ -42,11 +30,12 @@ def get_emotion_analyzer():
         )
         return classifier
     except Exception as e:
-        logger.error(f"Failed to initialize classifier: {str(e)}")
+        logger.error(f"Не вдалося ініціалізувати аналізатор: {str(e)}")
         raise
 
+
 def analyze_sentence(sentence, classifier):
-    """Analyze a single sentence"""
+    """Аналізує окреме речення"""
     try:
         results = classifier(sentence)[0]
         emotions_dict = {item['label']: item['score'] for item in results}
@@ -55,89 +44,65 @@ def analyze_sentence(sentence, classifier):
         return {
             'text': sentence,
             'dominant_emotion': dominant_emotion[0],
-            'confidence': dominant_emotion[1],
+            'confidence': round(dominant_emotion[1], 4),
             'emotions': emotions_dict
         }
     except Exception as e:
-        logger.error(f"Failed to analyze sentence: {str(e)}")
+        logger.error(f"Помилка аналізу речення: {str(e)}")
         return None
+
 
 def analyze_text(text):
     try:
         classifier = get_emotion_analyzer()
         sentences = split_into_sentences(text)
-
-        analyses = []
+        
+        sentence_analysis = []
         for sentence in sentences:
             if len(sentence) > 3:
                 analysis = analyze_sentence(sentence, classifier)
                 if analysis:
-                    analyses.append(analysis)
+                    sentence_analysis.append(analysis)
+        
+        overall_emotions = {}
+        for analysis in sentence_analysis:
+            for emotion, score in analysis['emotions'].items():
+                overall_emotions[emotion] = overall_emotions.get(emotion, 0) + score
+        
+        if sentence_analysis:
+            for emotion in overall_emotions:
+                overall_emotions[emotion] /= len(sentence_analysis)
 
-        output = []
-        output.append("<div class='emotion-analysis'>")
-        output.append("<h2>Emotional Analysis by Sentence</h2>")
-
-        for i, analysis in enumerate(analyses, 1):
-            output.append(f"<div class='sentence-block'>")
-            output.append(f"<h3>Sentence {i}:</h3>")
-            output.append(f"<p>{analysis['text']}</p>")
-            output.append(f"<p><strong>Primary Emotion:</strong> {analysis['dominant_emotion'].upper()} ({analysis['confidence']:.1%})</p>")
+            dominant_overall = max(overall_emotions.items(), key=lambda x: x[1])
             
-            # Емоційний розподіл
-            output.append("<div class='emotion-breakdown'>")
-            output.append("<h4>Emotional Breakdown:</h4>")
-            for emotion, score in sorted(analysis['emotions'].items(), key=lambda x: x[1], reverse=True):
-                output.append(f"""
-                    <div class='emotion-bar'>
-                        <span>{emotion.capitalize()} ({score:.1%})</span>
-                        <div class='bar' style='width: {score * 100}%;'></div>
-                    </div>
-                """)
-            output.append("</div>")  # Закриваємо emotional-breakdown
-            output.append("</div>")  # Закриваємо sentence-block
-
-        # Підсумковий аналіз
-        if analyses:
-            output.append("<div class='overall-analysis'>")
-            output.append("<h3>Overall Sentiment Analysis</h3>")
-            all_emotions = {}
-            for analysis in analyses:
-                for emotion, score in analysis['emotions'].items():
-                    all_emotions[emotion] = all_emotions.get(emotion, 0) + score
-            for emotion in all_emotions:
-                all_emotions[emotion] /= len(analyses)
-
-            dominant_overall = max(all_emotions.items(), key=lambda x: x[1])
-            output.append(f"<p><strong>Dominant Emotion:</strong> {dominant_overall[0].upper()} ({dominant_overall[1]:.1%})</p>")
-            output.append("<div class='emotion-breakdown'>")
-            output.append("<h4>Overall Emotional Breakdown:</h4>")
-            for emotion, score in sorted(all_emotions.items(), key=lambda x: x[1], reverse=True):
-                output.append(f"""
-                    <div class='emotion-bar'>
-                        <span>{emotion.capitalize()} ({score:.1%})</span>
-                        <div class='bar' style='width: {score * 100}%;'></div>
-                    </div>
-                """)
-            output.append("</div>")  # Закриваємо emotional-breakdown
-            output.append("</div>")  # Закриваємо overall-analysis
-
-        output.append("</div>")  # Закриваємо emotion-analysis
-
-        return "\n".join(output)
+            result = {
+                'dominant_emotion': dominant_overall[0] if dominant_overall else 'neutral',  # за замовчуванням 'neutral'
+                'confidence': round(dominant_overall[1], 4) if dominant_overall else 0,
+                'sentence_analysis': sentence_analysis,
+                'overall_emotions': overall_emotions
+            }
+        else:
+            result = {
+                'dominant_emotion': 'neutral',  # за замовчуванням 'neutral'
+                'confidence': 0,
+                'sentence_analysis': [],
+                'overall_emotions': {}
+            }
+        
+        return json.dumps(result, ensure_ascii=False, indent=4)
     
     except Exception as e:
-        logger.error(f"Analysis failed: {str(e)}")
-        return f"<p>Error analyzing text: {str(e)}</p>"
+        logger.error(f"Помилка аналізу тексту: {str(e)}")
+        return json.dumps({'error': str(e)})
 
 
 if __name__ == "__main__":
     try:
         if len(sys.argv) > 1:
-            text = sys.argv[1].encode('utf-8').decode('utf-8')
+            text = sys.argv[1]
             result = analyze_text(text)
             print(result)
         else:
-            print("No text provided")
+            print(json.dumps({"error": "No text provided"}))
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(json.dumps({"error": str(e)}))

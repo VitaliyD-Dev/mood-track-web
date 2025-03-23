@@ -10,7 +10,19 @@ class EmotionAnalysis extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'input_text', 'result'];
+    protected $fillable = [
+        'user_id',
+        'input_text',
+        'dominant_emotion',
+        'confidence',
+        'sentence_analysis',
+        'overall_emotions'
+    ];
+
+    protected $casts = [
+        'sentence_analysis' => 'array',
+        'overall_emotions' => 'array',
+    ];
 
     public function user(): BelongsTo
     {
