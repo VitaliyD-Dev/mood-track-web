@@ -18,7 +18,7 @@
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link href="{{ route('emotional-analyzer') }}" :active="request()->routeIs('emotional-analyzer')">
+                    <x-nav-link href="{{ route('emotion.analyzer') }}" :active="request()->routeIs('emotion.analyzer')">
                         {{ __('Emotional Analyzer') }}
                     </x-nav-link>
                 </div>

@@ -49,15 +49,17 @@
                 </div>
 
                 @if ($showingConfirmation)
-                    <div class="mt-4">
-                        <x-label for="code" value="{{ __('Code') }}" />
+                    <form wire:submit.prevent="confirmTwoFactorAuthentication">
+                        <div class="mt-4">
+                            <x-label for="code" value="{{ __('Code') }}" />
 
-                        <x-input id="code" type="text" name="code" class="block mt-1 w-1/2" inputmode="numeric" autofocus autocomplete="one-time-code"
-                            wire:model="code"
-                            wire:keydown.enter="confirmTwoFactorAuthentication" />
+                            <x-input id="code" type="text" name="code" class="block mt-1 w-1/2" inputmode="numeric" autofocus autocomplete="one-time-code"
+                                wire:model.defer="code"
+                                wire:keydown.enter="confirmTwoFactorAuthentication" />
 
-                        <x-input-error for="code" class="mt-2" />
-                    </div>
+                            <x-input-error for="code" class="mt-2" />
+                        </div>
+                    </form>
                 @endif
             @endif
 
@@ -78,46 +80,56 @@
 
         <div class="mt-5">
             @if (! $this->enabled)
-                <x-confirms-password wire:then="enableTwoFactorAuthentication">
-                    <x-button type="button" wire:loading.attr="disabled">
+                <form wire:submit.prevent="enableTwoFactorAuthentication" class="mt-4">
+                    <input type="hidden" name="username" autocomplete="username" value="{{ auth()->user()->email }}">
+                    <x-button type="submit" wire:loading.attr="disabled">
                         {{ __('Enable') }}
                     </x-button>
-                </x-confirms-password>
+                </form>
             @else
                 @if ($showingRecoveryCodes)
-                    <x-confirms-password wire:then="regenerateRecoveryCodes">
-                        <x-secondary-button class="me-3">
-                            {{ __('Regenerate Recovery Codes') }}
-                        </x-secondary-button>
-                    </x-confirms-password>
+                    <form wire:submit.prevent="regenerateRecoveryCodes">
+                        <x-confirms-password wire:then="regenerateRecoveryCodes">
+                            <x-secondary-button type="submit" class="me-3">
+                                {{ __('Regenerate Recovery Codes') }}
+                            </x-secondary-button>
+                        </x-confirms-password>
+                    </form>
                 @elseif ($showingConfirmation)
-                    <x-confirms-password wire:then="confirmTwoFactorAuthentication">
-                        <x-button type="button" class="me-3" wire:loading.attr="disabled">
-                            {{ __('Confirm') }}
-                        </x-button>
-                    </x-confirms-password>
+                    <form wire:submit.prevent="confirmTwoFactorAuthentication">
+                        <x-confirms-password wire:then="confirmTwoFactorAuthentication">
+                            <x-button type="submit" class="me-3" wire:loading.attr="disabled">
+                                {{ __('Confirm') }}
+                            </x-button>
+                        </x-confirms-password>
+                    </form>
                 @else
-                    <x-confirms-password wire:then="showRecoveryCodes">
-                        <x-secondary-button class="me-3">
-                            {{ __('Show Recovery Codes') }}
-                        </x-secondary-button>
-                    </x-confirms-password>
+                    <form wire:submit.prevent="showRecoveryCodes">
+                        <x-confirms-password wire:then="showRecoveryCodes">
+                            <x-secondary-button type="submit" class="me-3">
+                                {{ __('Show Recovery Codes') }}
+                            </x-secondary-button>
+                        </x-confirms-password>
+                    </form>
                 @endif
 
                 @if ($showingConfirmation)
-                    <x-confirms-password wire:then="disableTwoFactorAuthentication">
-                        <x-secondary-button wire:loading.attr="disabled">
-                            {{ __('Cancel') }}
-                        </x-secondary-button>
-                    </x-confirms-password>
+                    <form wire:submit.prevent="disableTwoFactorAuthentication">
+                        <x-confirms-password wire:then="disableTwoFactorAuthentication">
+                            <x-secondary-button type="submit" wire:loading.attr="disabled">
+                                {{ __('Cancel') }}
+                            </x-secondary-button>
+                        </x-confirms-password>
+                    </form>
                 @else
-                    <x-confirms-password wire:then="disableTwoFactorAuthentication">
-                        <x-danger-button wire:loading.attr="disabled">
-                            {{ __('Disable') }}
-                        </x-danger-button>
-                    </x-confirms-password>
+                    <form wire:submit.prevent="disableTwoFactorAuthentication">
+                        <x-confirms-password wire:then="disableTwoFactorAuthentication">
+                            <x-danger-button type="submit" wire:loading.attr="disabled">
+                                {{ __('Disable') }}
+                            </x-danger-button>
+                        </x-confirms-password>
+                    </form>
                 @endif
-
             @endif
         </div>
     </x-slot>

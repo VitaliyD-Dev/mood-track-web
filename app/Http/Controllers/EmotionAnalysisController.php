@@ -18,6 +18,11 @@ class EmotionAnalysisController extends Controller
         $this->emotionAnalyzer = $emotionAnalyzer;
     }
 
+    public function index()
+    {
+        return view('emotion.index');
+    }
+
     public function show($id)
     {
         $analysis = EmotionAnalysis::findOrFail($id);
@@ -31,27 +36,37 @@ class EmotionAnalysisController extends Controller
         ]);
 
         $text = $request->input('text');
-        $userId = Auth::id(); // Отримуємо user_id
+        $userId = Auth::id();
 
-        // Виконуємо аналіз, передаючи userId
-        $result = $this->emotionAnalyzer->analyze($text, $userId);
+        try {
+            // Виконуємо аналіз
+            $result = $this->emotionAnalyzer->analyze($text, $userId);
 
-        // Якщо аналіз не вдався
-        if (is_string($result)) {
-            return redirect()->back()->with('error', 'Сталася помилка під час аналізу.');
+            // Якщо аналіз не вдався
+            if (is_string($result)) {
+                return redirect()->back()->with('error', 'Сталася помилка під час аналізу: ' . $result);
+            }
+
+            // Перевіряємо наявність всіх необхідних ключів
+            if (!isset($result['dominant_emotion']) || !isset($result['confidence'])) {
+                return redirect()->back()->with('error', 'Некоректний формат результатів аналізу');
+            }
+
+            // Збереження результатів аналізу в БД
+            $analysis = EmotionAnalysis::create([
+                'user_id' => $userId,
+                'input_text' => $text,
+                'dominant_emotion' => $result['dominant_emotion'],
+                'confidence' => $result['confidence'],
+                'sentence_analysis' => $result['sentence_analysis'] ?? [],
+                'overall_emotions' => $result['overall_emotions'] ?? [],
+            ]);
+
+            return redirect()->route('emotion.history')->with('success', 'Аналіз виконано успішно.');
+        } catch (\Exception $e) {
+            \Log::error('Помилка при аналізі емоцій: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Сталася помилка під час аналізу. Будь ласка, спробуйте ще раз.');
         }
-
-        // Збереження результатів аналізу в БД
-        $analysis = EmotionAnalysis::create([
-            'user_id' => $userId,
-            'input_text' => $text,
-            'dominant_emotion' => $result['dominant_emotion'],
-            'confidence' => $result['confidence'],
-            'sentence_analysis' => $result['sentence_analysis'],
-            'overall_emotions' => $result['overall_emotions'],
-        ]);
-
-        return redirect()->route('emotion.history')->with('success', 'Аналіз виконано.');
     }
 
     public function history()

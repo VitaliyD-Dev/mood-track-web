@@ -4,9 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmotionAnalyzerController;
 use App\Http\Controllers\EmotionAnalysisController;
 use App\Http\Controllers\VideoCommentController;
-
-
-
+use App\Http\Controllers\LLMController;
 
 // Головна сторінка для неавторизованих користувачів
 Route::get('/', function () {
@@ -16,18 +14,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Маршрути для аналізатора емоцій
-Route::get('/emotion-analyzer', [EmotionAnalyzerController::class, 'index'])->name('emotion-analyzer');
-Route::post('/emotion-analyzer', [EmotionAnalyzerController::class, 'analyze'])->name('analyze');
-
 // Старий welcome route (можна видалити якщо не потрібен)
 Route::get('/welcome', function () {
     return view('welcome');
 });
 
-
-
-Route::get('/emotional-analyzer', [EmotionAnalyzerController::class, 'index'])->name('emotional-analyzer');
 Route::get('/users', [EmotionAnalyzerController::class, 'userIndex'])->middleware(['auth:sanctum', 'verified'])->name('users.index');
 
 Route::middleware([
@@ -39,13 +30,19 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 
-    // Тут також ми перевіряємо авторизацію, перед тим як виконати дії
+    // Маршрути для аналізу емоцій
+    Route::get('/emotion-analyzer', [EmotionAnalysisController::class, 'index'])->name('emotion.analyzer');
     Route::post('/analyze', [EmotionAnalysisController::class, 'analyze'])->name('analyze');
     Route::get('/emotion-history', [EmotionAnalysisController::class, 'history'])->name('emotion.history');
+    Route::get('/emotion/{analysis}', [EmotionAnalysisController::class, 'show'])->name('emotion.show');
 
-
+    // Маршрути для коментарів відео
     Route::get('/video-comments', [VideoCommentController::class, 'showForm'])->name('video-comments.form');
     Route::post('/video-comments', [VideoCommentController::class, 'fetchComments'])->name('video-comments.fetch');
-
-    Route::get('/emotion/{analysis}', [App\Http\Controllers\EmotionAnalysisController::class, 'show'])->name('emotion.show');
+    Route::get('/video-comments/{videoId}', [VideoCommentController::class, 'show'])->name('video-comments.show');
+    Route::get('/video-comments/{videoId}/load', [VideoCommentController::class, 'loadComments'])->name('video-comments.load');
+    Route::post('/analyze-comments', [VideoCommentController::class, 'fetchComments'])->name('video-comments.analyze');
+    
+    // Маршрут для чату
+    Route::post('/chat/send', [LLMController::class, 'send']);
 });

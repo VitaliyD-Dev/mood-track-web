@@ -16,6 +16,21 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            animation: {
+                pulsate: 'pulsate 1s infinite alternate',
+            },
+            keyframes: {
+                pulsate: {
+                    '0%': { transform: 'scale(1)', opacity: '0.8' },
+                    '100%': { transform: 'scale(1.1)', opacity: '1' },
+                },
+            },
+            transitionProperty: {
+                height: 'height',
+                spacing: 'margin, padding',
+                opacity: 'opacity',
+                transform: 'transform',
+            },
         },
     },
 
