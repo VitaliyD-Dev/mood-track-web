@@ -37,12 +37,23 @@ Route::middleware([
     Route::get('/emotion/{analysis}', [EmotionAnalysisController::class, 'show'])->name('emotion.show');
 
     // Маршрути для коментарів відео
-    Route::get('/video-comments', [VideoCommentController::class, 'showForm'])->name('video-comments.form');
-    Route::post('/video-comments', [VideoCommentController::class, 'fetchComments'])->name('video-comments.fetch');
+    Route::get('/video-comments/form', [VideoCommentController::class, 'showForm'])->name('video-comments.form');
+    Route::post('/video-comments/fetch', [VideoCommentController::class, 'fetchComments'])->name('video-comments.fetch');
     Route::get('/video-comments/{videoId}', [VideoCommentController::class, 'show'])->name('video-comments.show');
     Route::get('/video-comments/{videoId}/load', [VideoCommentController::class, 'loadComments'])->name('video-comments.load');
-    Route::post('/analyze-comments', [VideoCommentController::class, 'fetchComments'])->name('video-comments.analyze');
+
+    // Video Analysis Routes
+    Route::get('/video-analysis/history', [VideoCommentController::class, 'history'])->name('video-analysis.history');
+    Route::get('/video-analysis/{id}', [VideoCommentController::class, 'showAnalysis'])->name('video-analysis.show');
     
     // Маршрут для чату
     Route::post('/chat/send', [LLMController::class, 'send']);
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    // Інші захищені маршрути...
 });

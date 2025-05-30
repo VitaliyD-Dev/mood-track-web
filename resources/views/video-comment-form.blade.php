@@ -41,7 +41,10 @@
                             </p>
                         </div>
 
-                        <div class="flex justify-end">
+                        <div class="flex justify-between items-center">
+                            <a href="{{ route('video-analysis.history') }}" class="text-blue-600 hover:text-blue-800">
+                                {{ __('Історія аналізів') }}
+                            </a>
                             <button type="submit" 
                                     class="inline-flex items-center px-6 py-3 bg-red-600 text-white text-base font-medium rounded-xl hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-150 ease-in-out shadow-sm hover:shadow">
                                 Отримати коментарі

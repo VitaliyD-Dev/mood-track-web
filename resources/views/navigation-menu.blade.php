@@ -10,30 +10,26 @@
                     </a>
                 </div>
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link href="{{ route('emotion.analyzer') }}" :active="request()->routeIs('emotion.analyzer')">
-                        {{ __('Emotional Analyzer') }}
+                        {{ __('Аналізатор емоцій') }}
                     </x-nav-link>
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.index')">
-                        {{ __('Users List') }}
+                        {{ __('Список користувачів') }}
                     </x-nav-link>
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link href="{{ route('video-comments.form') }}" :active="request()->routeIs('video-comments.form')">
-                        {{ __('Парсинг YouTube') }}
+                        {{ __('Аналіз коментарів') }}
                     </x-nav-link>
                 </div>
+
+                
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">
@@ -159,6 +155,10 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link href="{{ route('video-analysis.history') }}" :active="request()->routeIs('video-analysis.history')">
+                {{ __('Історія аналізів') }}
             </x-responsive-nav-link>
         </div>
 

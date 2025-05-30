@@ -33,7 +33,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'profile_photo_path',
     ];
 
     /**
@@ -44,8 +43,6 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'two_factor_recovery_codes',
-        'two_factor_secret',
     ];
 
     /**
@@ -62,17 +59,18 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'last_seen' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'last_seen' => 'datetime',
+        'password' => 'hashed',
+    ];
+
     public function isOnline()
     {
-        return $this->last_seen && $this->last_seen->gt(Carbon::now()->subMinutes(5)); // Якщо остання активність була менше 5 хвилин тому
+        if (!$this->last_seen) {
+            return false;
+        }
+        return $this->last_seen->isAfter(Carbon::now()->subMinutes(5));
     }
 
     public function updateProfilePhoto($photo)
