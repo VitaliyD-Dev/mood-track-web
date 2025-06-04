@@ -10,7 +10,7 @@
     class="fixed bottom-20 w-80 h-96 bg-white shadow-xl rounded-lg hidden z-50 transition-all duration-300 ease-in-out opacity-0 scale-95"
     style="right: 0.5rem !important; bottom: 8rem !important;">
     <div class="bg-blue-600 text-white p-4 rounded-t-lg flex justify-between items-center">
-        <span class="font-bold">Чат</span>
+        <span class="font-bold">Чат з Llama 3</span>
         <button id="close-chat" class="text-lg focus:outline-none">✖</button>
     </div>
     <div class="p-4 h-[calc(100%-48px)] overflow-y-auto text-gray-600">
@@ -98,36 +98,36 @@
             });
 
             async function sendMessage() {
-                const prompt = chatInput.value.trim();
-                if (!prompt) return;
+                const message = chatInput.value.trim();
+                if (!message) return;
 
-                appendMessage('👤', prompt);
+                appendMessage('👤', message);
                 chatInput.value = '';
 
                 try {
-                    const instruction = "Ти — експерт з технічної підтримки. Відповідай коротко й офіційно. Ти відповідаєш лише на запитання про роботу сайту та форуми. Ти - консультант треба спочатку дізнатись, що користувач хоче в тебе запитати. Ти маєш відповідати мовою якою користувач пише тобі повідомлення";
-
-                    const response = await fetch('/chat/send', {
+                    const response = await fetch('/api/llama/chat', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
                         },
                         body: JSON.stringify({
-                            prompt: prompt,
-                            instruction: instruction
+                            message: message,
+                            model: 'llama3'
                         })
                     });
 
+                    const data = await response.json();
+
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        throw new Error(data.error || 'Network response was not ok');
                     }
 
-                    const data = await response.json();
                     appendMessage('🤖', data.response);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 } catch (error) {
-                    appendMessage('⚠️', 'Помилка при надсиланні повідомлення.');
+                    console.error('Error:', error);
+                    appendMessage('⚠️', `Помилка: ${error.message}`);
                 }
             }
 
