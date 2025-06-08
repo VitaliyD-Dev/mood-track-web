@@ -5,6 +5,7 @@ use App\Http\Controllers\EmotionAnalyzerController;
 use App\Http\Controllers\EmotionAnalysisController;
 use App\Http\Controllers\VideoCommentController;
 use App\Http\Controllers\LLMController;
+use App\Http\Controllers\TestingController;
 
 // Головна сторінка для неавторизованих користувачів
 Route::get('/', function () {
@@ -48,6 +49,10 @@ Route::middleware([
     
     // Маршрут для чату
     Route::post('/chat/send', [LLMController::class, 'send']);
+
+    // Тестування
+    Route::get('/testing', [TestingController::class, 'index'])->name('testing');
+    Route::post('/testing/upload', [TestingController::class, 'upload'])->name('testing.upload');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -57,3 +62,5 @@ Route::middleware(['auth'])->group(function () {
 
     // Інші захищені маршрути...
 });
+
+require __DIR__.'/auth.php';

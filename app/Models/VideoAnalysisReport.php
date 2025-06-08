@@ -11,14 +11,14 @@ class VideoAnalysisReport extends Model
         'emotional_overview',
         'topical_analysis',
         'controversial_topics',
-        'audience_summary'
+        'content_inspection'
     ];
 
     protected $casts = [
         'emotional_overview' => 'array',
         'topical_analysis' => 'array',
         'controversial_topics' => 'array',
-        'audience_summary' => 'array'
+        'content_inspection' => 'array'
     ];
 
     public function videoAnalysis()

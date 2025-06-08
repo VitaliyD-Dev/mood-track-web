@@ -5,15 +5,11 @@ namespace App\Services;
 use App\Models\VideoAnalysis;
 use App\Models\VideoAnalysisReport;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class LLMAnalysisService
 {
-    protected $huggingFace;
-
-    public function __construct(HuggingFaceService $huggingFace)
-    {
-        $this->huggingFace = $huggingFace;
-    }
+    protected $ollamaUrl = 'http://localhost:11434';
 
     public function analyzeComments(VideoAnalysis $analysis)
     {
@@ -23,24 +19,23 @@ class LLMAnalysisService
                 return [
                     'text' => $comment->text,
                     'emotion' => $comment->emotion,
-                    'emotion_score' => $comment->emotion_score,
-                    'emotions' => $comment->emotions
+                    'published_at' => $comment->published_at
                 ];
             })->toArray();
 
-            Log::info('Analyzing comments with LLM: ' . json_encode($comments));
+            Log::info('Analyzing comments with Llama: ' . json_encode($comments));
 
-            // Generate different types of analysis
+            // Generate only the requested types of analysis
             $emotionalOverview = $this->generateEmotionalOverview($comments);
             $topicalAnalysis = $this->generateTopicalAnalysis($comments);
             $controversialTopics = $this->generateControversialTopics($comments);
-            $audienceSummary = $this->generateAudienceSummary($comments);
+            $contentInspection = $this->generateContentInspection($comments);
 
             Log::info('Generated analysis: ' . json_encode([
                 'emotional_overview' => $emotionalOverview,
                 'topical_analysis' => $topicalAnalysis,
                 'controversial_topics' => $controversialTopics,
-                'audience_summary' => $audienceSummary
+                'content_inspection' => $contentInspection
             ]));
 
             // Save the analysis report
@@ -49,11 +44,11 @@ class LLMAnalysisService
                 'emotional_overview' => $emotionalOverview,
                 'topical_analysis' => $topicalAnalysis,
                 'controversial_topics' => $controversialTopics,
-                'audience_summary' => $audienceSummary
+                'content_inspection' => $contentInspection
             ]);
 
         } catch (\Exception $e) {
-            Log::error('LLM Analysis failed: ' . $e->getMessage());
+            Log::error('Llama Analysis failed: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -61,77 +56,101 @@ class LLMAnalysisService
     protected function generateEmotionalOverview($comments)
     {
         try {
-            $prompt = "Analyze the emotional content of these comments:\n\n";
+            $prompt = "Проаналізуй емоційний настрій коментарів та надай короткий огляд загального емоційного настрою аудиторії.\n\n";
+            $prompt .= "Коментарі та їх емоції:\n";
             foreach ($comments as $comment) {
-                $prompt .= "Comment: {$comment['text']}\n";
-                $prompt .= "Emotion: {$comment['emotion']} (Score: {$comment['emotion_score']})\n";
-                $prompt .= "Detailed emotions: " . json_encode($comment['emotions']) . "\n\n";
+                $prompt .= "- {$comment['text']} (Емоція: {$comment['emotion']})\n";
             }
-            $prompt .= "Provide a comprehensive emotional overview of these comments.";
+            $prompt .= "\nНадай детальний аналіз емоційного настрою аудиторії.";
 
-            $response = $this->huggingFace->generateText($prompt);
+            $response = $this->callLlama($prompt);
             Log::info('Generated emotional overview: ' . $response);
             return $response;
         } catch (\Exception $e) {
             Log::error('Failed to generate emotional overview: ' . $e->getMessage());
-            return "Failed to generate emotional overview.";
+            return "Не вдалося згенерувати емоційний огляд.";
         }
     }
 
     protected function generateTopicalAnalysis($comments)
     {
         try {
-            $prompt = "Analyze the main topics discussed in these comments:\n\n";
+            $prompt = "Проаналізуй теми коментарів та визнач, про що найчастіше коментують.\n\n";
+            $prompt .= "Коментарі:\n";
             foreach ($comments as $comment) {
-                $prompt .= "Comment: {$comment['text']}\n";
-                $prompt .= "Emotion: {$comment['emotion']}\n\n";
+                $prompt .= "- {$comment['text']}\n";
             }
-            $prompt .= "Identify and analyze the main topics discussed in these comments.";
+            $prompt .= "\nНадай детальний тематичний аналіз коментарів.";
 
-            $response = $this->huggingFace->generateText($prompt);
+            $response = $this->callLlama($prompt);
             Log::info('Generated topical analysis: ' . $response);
             return $response;
         } catch (\Exception $e) {
             Log::error('Failed to generate topical analysis: ' . $e->getMessage());
-            return "Failed to generate topical analysis.";
+            return "Не вдалося згенерувати тематичний аналіз.";
         }
     }
 
     protected function generateControversialTopics($comments)
     {
         try {
-            $prompt = "Identify controversial topics in these comments:\n\n";
+            $prompt = "Вияви суперечливі чи полярні теми в коментарях.\n\n";
+            $prompt .= "Коментарі:\n";
             foreach ($comments as $comment) {
-                $prompt .= "Comment: {$comment['text']}\n";
-                $prompt .= "Emotion: {$comment['emotion']}\n\n";
+                $prompt .= "- {$comment['text']} (Емоція: {$comment['emotion']})\n";
             }
-            $prompt .= "Identify any controversial topics or points of contention in these comments.";
+            $prompt .= "\nНадай аналіз суперечливих та полярних тем.";
 
-            $response = $this->huggingFace->generateText($prompt);
+            $response = $this->callLlama($prompt);
             Log::info('Generated controversial topics: ' . $response);
             return $response;
         } catch (\Exception $e) {
             Log::error('Failed to generate controversial topics: ' . $e->getMessage());
-            return "Failed to generate controversial topics.";
+            return "Не вдалося згенерувати аналіз суперечливих тем.";
         }
     }
 
-    protected function generateAudienceSummary($comments)
+    protected function generateContentInspection($comments)
     {
         try {
-            $prompt = "Provide a summary of the audience's response based on these comments:\n\n";
+            $prompt = "Проаналізуй ці дані та коментарі і визнач:\n\n";
+            $prompt .= "1. Чи містять коментарі мову ворожнечі, токсичність або особисті образи.\n";
+            $prompt .= "2. Чи згадується щось політично, культурно або соціально чутливе.\n";
+            $prompt .= "3. Чи є ризики для репутації бренду/автора.\n";
+            $prompt .= "4. Чи може це відео спричинити хейт або токсичні обговорення.\n\n";
+            $prompt .= "Коментарі:\n";
             foreach ($comments as $comment) {
-                $prompt .= "Comment: {$comment['text']}\n";
-                $prompt .= "Emotion: {$comment['emotion']}\n\n";
+                $prompt .= "- {$comment['text']} (Емоція: {$comment['emotion']})\n";
             }
-            $prompt .= "Provide a comprehensive summary of how the audience is responding to the content.";
+            $prompt .= "\nНадай детальний аналіз потенційних ризиків та проблем.";
 
-            $response = $this->huggingFace->generateText($prompt);
-            Log::info('Generated audience summary: ' . $response);
+            $response = $this->callLlama($prompt);
+            Log::info('Generated content inspection: ' . $response);
             return $response;
         } catch (\Exception $e) {
-            Log::error('Failed to generate audience summary: ' . $e->getMessage());
-            return "Failed to generate audience summary.";
+            Log::error('Failed to generate content inspection: ' . $e->getMessage());
+            return "Не вдалося згенерувати аналіз контенту.";
+        }
+    }
+
+    protected function callLlama($prompt)
+    {
+        try {
+            $response = Http::timeout(30)->post($this->ollamaUrl . '/api/generate', [
+                'model' => 'llama3',
+                'prompt' => $prompt,
+                'stream' => false
+            ]);
+
+            if ($response->failed()) {
+                throw new \Exception('Failed to communicate with Llama: ' . $response->body());
+            }
+
+            $result = $response->json();
+            return $result['response'] ?? 'Не вдалося отримати відповідь від моделі.';
+        } catch (\Exception $e) {
+            Log::error('Llama API call failed: ' . $e->getMessage());
+            throw $e;
         }
     }
 

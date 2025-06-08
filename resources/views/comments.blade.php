@@ -5,7 +5,127 @@
             allowfullscreen style="width: 900px; height: 550px;">
         </iframe>
     </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Blocks arranged in a 2x2 grid on medium screens and above -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-white rounded-xl shadow-sm p-6 overflow-hidden">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Аналіз коментарів</h2>
+                <div class="overflow-y-auto space-y-6"
+                    style="max-height: 400px; scrollbar-width: thin;">
+                    <div class="flex items-start space-x-3">
+                        <span class="text-2xl">🧠</span>
+                        <div class="flex-1">
+                            @if(isset($analysisReport))
+                                @php
+                                    // Simple Markdown parsing function
+                                    // Handles bold (**text**), inline italics (*text* or -text-), and lists (* item or - item)
+                                    $parseMarkdown = function($text) {
+                                        // Convert bold markdown: **text** -> <strong>text</strong>
+                                        $text = preg_replace('/\*\*(.*?)\*\*/s', '<strong>$1</strong>', $text);
 
+                                        // Process lines to identify lists and paragraphs
+                                        $lines = explode("\n", $text);
+                                        $formattedLines = [];
+                                        $inList = false;
+
+                                        foreach ($lines as $line) {
+                                            $trimmedLine = trim($line);
+
+                                            // Check for list item start: * text or - text
+                                            if (preg_match('/^[-*] (.*?)$/', $trimmedLine, $matches)) {
+                                                if (!$inList) {
+                                                    $formattedLines[] = '<ul>';
+                                                    $inList = true;
+                                                }
+                                                // Text after the list marker
+                                                $content = $matches[1];
+
+                                                // Apply inline italics within the list item: *text* -> <em>text</em>
+                                                $content = preg_replace('/\*(.*?)\*/s', '<em>$1</em>', $content);
+                                                 // Apply inline italics within the list item: -text- -> <em>text</em>
+                                                $content = preg_replace('/-{1}(.*?)-{1}/s', '<em>$1</em>', $content);
+
+                                                $formattedLines[] = '<li>' . $content . '</li>';
+                                            } else {
+                                                // Not a list item
+                                                if ($inList) {
+                                                    $formattedLines[] = '</ul>';
+                                                    $inList = false;
+                                                }
+                                                // Add as a paragraph if the line is not empty
+                                                 if ($trimmedLine !== '') {
+                                                    // Apply inline italics within the paragraph: *text* -> <em>text</em>
+                                                    $content = preg_replace('/\*(.*?)\*/s', '<em>$1</em>', $trimmedLine);
+                                                     // Apply inline italics within the paragraph: -text- -> <em>text</em>
+                                                    $content = preg_replace('/-{1}(.*?)-{1}/s', '<em>$1</em>', $content);
+
+                                                    $formattedLines[] = '<p>' . $content . '</p>';
+                                                 } else {
+                                                    // Preserve empty lines for spacing between paragraphs
+                                                    $formattedLines[] = '';
+                                                 }
+                                            }
+                                        }
+                                        // Close the list if still inside one at the end
+                                        if ($inList) {
+                                            $formattedLines[] = '</ul>';
+                                        }
+                                        return implode("\n", $formattedLines);
+                                    };
+                                @endphp
+                                <div class="space-y-4">
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <h3 class="font-semibold text-gray-800 mb-2">Емоційний настрій:</h3>
+                                        <div class="text-gray-700 leading-relaxed">{!! $parseMarkdown($analysisReport->emotional_overview) !!}</div>
+                                    </div>
+                                    
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <h3 class="font-semibold text-gray-800 mb-2">Тематичний аналіз:</h3>
+                                        <div class="text-gray-700 leading-relaxed">{!! $parseMarkdown($analysisReport->topical_analysis) !!}</div>
+                                    </div>
+                                    
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <h3 class="font-semibold text-gray-800 mb-2">Суперечливі теми:</h3>
+                                         <div class="text-gray-700 leading-relaxed">{!! $parseMarkdown($analysisReport->controversial_topics) !!}</div>
+                                    </div>
+                                    
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <h3 class="font-semibold text-gray-800 mb-2">Аналіз контенту:</h3>
+                                         <div class="text-gray-700 leading-relaxed">{!! $parseMarkdown($analysisReport->content_inspection) !!}</div>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="flex items-center justify-center h-32">
+                                    <p class="text-gray-500">Аналіз завантажується...</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 overflow-hidden">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Контентний аналіз</h2>
+                <div class="overflow-y-auto space-y-6"
+                    style="max-height: 400px; scrollbar-width: thin;">
+                    <div class="flex items-start space-x-3">
+                        <span class="text-2xl">⚠️</span>
+                        <div class="flex-1">
+                            @if(isset($analysisReport))
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="text-gray-700 leading-relaxed">{!! $parseMarkdown($analysisReport->content_inspection ?? 'Аналіз контенту...') !!}</div>
+                                </div>
+                            @else
+                                <div class="flex items-center justify-center h-32">
+                                    <p class="text-gray-500">Аналіз контенту...</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Charts Section -->
@@ -55,7 +175,7 @@
 
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <!-- Charts Initialization -->
     <script>
         // Prepare data for charts

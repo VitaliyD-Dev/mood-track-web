@@ -13,6 +13,9 @@ class LlamaController extends Controller
     public function chat(Request $request)
     {
         try {
+            // Збільшуємо ліміт часу виконання PHP
+            set_time_limit(300); // 5 хвилин
+
             // Валідація вхідних даних
             $request->validate([
                 'message' => 'required|string',
@@ -30,16 +33,62 @@ class LlamaController extends Controller
             $message = $request->input('message');
             $model = $request->input('model', 'llama3');
 
+            // Розбиваємо повідомлення на менші частини, якщо це масив коментарів
+            if (is_array($message)) {
+                $batchSize = 10; // Обробляємо по 10 коментарів за раз
+                $results = [];
+                
+                foreach (array_chunk($message, $batchSize) as $batch) {
+                    $batchMessage = json_encode($batch);
+                    
+                    Log::info('Processing batch of comments', [
+                        'batch_size' => count($batch)
+                    ]);
+
+                    $response = Http::timeout(120)->post($this->ollamaUrl . '/api/generate', [
+                        'model' => $model,
+                        'prompt' => $batchMessage,
+                        'stream' => false,
+                        'options' => [
+                            'num_predict' => 2048,
+                            'temperature' => 0.7,
+                            'top_p' => 0.9,
+                            'top_k' => 40
+                        ]
+                    ]);
+
+                    if ($response->successful()) {
+                        $result = $response->json();
+                        if (isset($result['response'])) {
+                            $results[] = $result['response'];
+                        }
+                    }
+
+                    // Невелика пауза між батчами
+                    usleep(500000); // 0.5 секунди
+                }
+
+                return response()->json([
+                    'response' => $results
+                ]);
+            }
+
+            // Звичайна обробка одиночного повідомлення
             Log::info('Sending request to Ollama', [
                 'message' => $message,
                 'model' => $model
             ]);
 
-            // Відправка запиту до Ollama
-            $response = Http::timeout(30)->post($this->ollamaUrl . '/api/generate', [
+            $response = Http::timeout(120)->post($this->ollamaUrl . '/api/generate', [
                 'model' => $model,
                 'prompt' => $message,
-                'stream' => false
+                'stream' => false,
+                'options' => [
+                    'num_predict' => 2048,
+                    'temperature' => 0.7,
+                    'top_p' => 0.9,
+                    'top_k' => 40
+                ]
             ]);
 
             // Логування відповіді

@@ -32,6 +32,106 @@
                     </div>
 
                     <div class="mt-8">
+                        <h4 class="text-lg font-medium text-gray-900 mb-4">{{ __('Аналіз звіту') }}</h4>
+                        @if(isset($analysisReport))
+                            <div class="space-y-4">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h3 class="font-semibold text-gray-800 mb-2">{{ __('Емоційний настрій') }}:</h3>
+                                    @php
+                                        $emotionalOverview = $analysisReport->emotional_overview;
+
+                                        // Simple Markdown parsing function
+                                        $parseMarkdown = function($text) {
+                                            $lines = explode("\n", $text);
+                                            $formattedLines = [];
+                                            $inList = false;
+
+                                            foreach ($lines as $line) {
+                                                $trimmedLine = trim($line);
+
+                                                // Check for list item start: * text or - text
+                                                if (preg_match('/^[-*] (.*?)$/', $trimmedLine, $matches)) {
+                                                    if (!$inList) {
+                                                        $formattedLines[] = '<ul>';
+                                                        $inList = true;
+                                                    }
+                                                    // Text after the list marker
+                                                    $content = $matches[1];
+
+                                                    // Apply bold markdown within the list item: **text** -> <strong>text</strong>
+                                                    $content = preg_replace('/\*\*(.*?)\*\*/s', '<strong>$1</strong>', $content);
+                                                    // Apply inline italics within the list item: *text* -> <em>text</em>
+                                                    $content = preg_replace('/\*(.*?)\*/s', '<em>$1</em>', $content);
+                                                     // Apply inline italics within the list item: -text- -> <em>text</em>
+                                                    $content = preg_replace('/-{1}(.*?)-{1}/s', '<em>$1</em>', $content);
+
+                                                    $formattedLines[] = '<li>' . $content . '</li>';
+                                                } else {
+                                                    // Not a list item
+                                                    if ($inList) {
+                                                        $formattedLines[] = '</ul>';
+                                                        $inList = false;
+                                                    }
+                                                    // Add as a paragraph if the line is not empty
+                                                     if ($trimmedLine !== '') {
+                                                        // Apply bold markdown within the paragraph: **text** -> <strong>text</strong>
+                                                        $content = preg_replace('/\*\*(.*?)\*\*/s', '<strong>$1</strong>', $trimmedLine);
+                                                        // Apply inline italics within the paragraph: *text* -> <em>text</em>
+                                                        $content = preg_replace('/\*(.*?)\*/s', '<em>$1</em>', $content);
+                                                         // Apply inline italics within the paragraph: -text- -> <em>text</em>
+                                                        $content = preg_replace('/-{1}(.*?)-{1}/s', '<em>$1</em>', $content);
+
+                                                        $formattedLines[] = '<p>' . $content . '</p>';
+                                                     } else {
+                                                        // Preserve empty lines for spacing between paragraphs
+                                                        $formattedLines[] = '';
+                                                     }
+                                                }
+                                            }
+
+                                            // Close the list if still inside one at the end
+                                            if ($inList) {
+                                                $formattedLines[] = '</ul>';
+                                            }
+
+                                            return implode("\n", $formattedLines);
+                                        };
+                                    @endphp
+                                    <div class="text-gray-700 leading-relaxed">{!! $parseMarkdown($emotionalOverview) !!}</div>
+                                </div>
+
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h3 class="font-semibold text-gray-800 mb-2">{{ __('Тематичний аналіз') }}:</h3>
+                                    @php
+                                        $topicalAnalysis = $analysisReport->topical_analysis;
+                                    @endphp
+                                    <div class="text-gray-700 leading-relaxed">{!! $parseMarkdown($topicalAnalysis) !!}</div>
+                                </div>
+
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h3 class="font-semibold text-gray-800 mb-2">{{ __('Суперечливі теми') }}:</h3>
+                                    @php
+                                        $controversialTopics = $analysisReport->controversial_topics;
+                                    @endphp
+                                    <div class="text-gray-700 leading-relaxed">{!! $parseMarkdown($controversialTopics) !!}</div>
+                                </div>
+
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h3 class="font-semibold text-gray-800 mb-2">{{ __('Аналіз контенту') }}:</h3>
+                                    @php
+                                        $contentInspection = $analysisReport->content_inspection;
+                                    @endphp
+                                    <div class="text-gray-700 leading-relaxed">{!! $parseMarkdown($contentInspection) !!}</div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="flex items-center justify-center h-32">
+                                <p class="text-gray-500">{{ __('Звіт аналізу не знайдено.') }}</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="mt-8">
                         <h4 class="text-lg font-medium text-gray-900 mb-4">{{ __('Коментарі') }}</h4>
                         <div class="space-y-4">
                             @foreach($comments as $comment)

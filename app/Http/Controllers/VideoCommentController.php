@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\YouTubeService;
+use App\Services\LLMAnalysisService;
 use App\Models\VideoAnalysis;
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Process;
@@ -11,10 +12,12 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 class VideoCommentController extends Controller
 {
     protected $youTubeService;
+    protected $llmAnalysisService;
 
-    public function __construct(YouTubeService $youTubeService)
+    public function __construct(YouTubeService $youTubeService, LLMAnalysisService $llmAnalysisService)
     {
         $this->youTubeService = $youTubeService;
+        $this->llmAnalysisService = $llmAnalysisService;
     }
 
     public function showForm()
@@ -89,13 +92,17 @@ class VideoCommentController extends Controller
                 ]);
             }
 
+            // Генеруємо аналіз за допомогою Llama
+            $analysisReport = $this->llmAnalysisService->analyzeComments($analysis);
+
             // Перенаправляємо на сторінку з коментарями
             return view('comments', [
                 'videoId' => $videoId,
                 'videoInfo' => $videoInfo,
                 'comments' => $commentsWithEmotions,
                 'commentsData' => $chartCommentsData,
-                'emotionsData' => $emotionsData
+                'emotionsData' => $emotionsData,
+                'analysisReport' => $analysisReport
             ]);
 
         } catch (\Exception $e) {
@@ -173,7 +180,7 @@ class VideoCommentController extends Controller
 
     public function showAnalysis($id)
     {
-        $analysis = VideoAnalysis::with('comments')
+        $analysis = VideoAnalysis::with(['comments', 'latestAnalysisReport'])
             ->where('user_id', auth()->id())
             ->findOrFail($id);
         
@@ -204,7 +211,10 @@ class VideoCommentController extends Controller
         // Пагінація коментарів
         $comments = $analysis->comments()->paginate(20);
 
-        return view('video-analysis.show', compact('analysis', 'comments', 'commentsData', 'emotionsData', 'emotionsLabels'));
+        // Отримуємо останній звіт аналізу
+        $analysisReport = $analysis->latestAnalysisReport;
+
+        return view('video-analysis.show', compact('analysis', 'comments', 'commentsData', 'emotionsData', 'emotionsLabels', 'analysisReport'));
     }
 
     private function prepareCommentsChartData($comments)
